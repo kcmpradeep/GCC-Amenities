@@ -1,0 +1,3095 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/filter.css">
+<link rel="stylesheet" href="css/nouislider.min.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title>Women Safety Study - Amenities around the Bus Stops</title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet-svg-shape-markers.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/tailDT.js"></script>
+<script src="js/nouislider.min.js"></script>
+<script src="js/wNumb.js"></script>
+        <script src="data/Zones_1.js"></script>
+        <script src="data/SourceandDestination_2.js"></script>
+        <script src="data/29C_3.js"></script>
+        <script src="data/17D_4.js"></script>
+        <script src="data/102K_5.js"></script>
+        <script src="data/119_6.js"></script>
+        <script src="data/159A_7.js"></script>
+        <script src="data/2A_8.js"></script>
+        <script src="data/32B_9.js"></script>
+        <script src="data/26_10.js"></script>
+        <script src="data/48C_11.js"></script>
+        <script src="data/4_12.js"></script>
+        <script src="data/Routes_13.js"></script>
+        <script src="data/BusStops_14.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[12.854417413360382,79.91300736479545],[13.234483813360415,80.6783465538366]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var title = new L.Control({'position':'topright'});
+        title.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        title.update = function () {
+            this._div.innerHTML = '<h2>Women Safety Study - Amenities around the Bus Stops</h2>';
+        };
+        title.addTo(map);
+        var abstract = new L.Control({'position':'bottomright'});
+        abstract.onAdd = function (map) {
+            this._div = L.DomUtil.create('div',
+            'leaflet-control abstract');
+            this._div.id = 'abstract'
+
+                abstract.show();
+                return this._div;
+            };
+            abstract.show = function () {
+                this._div.classList.remove("abstract");
+                this._div.classList.add("abstractUncollapsed");
+                this._div.innerHTML = 'Filter Instructions: <br />1st Filter: Select a bus route to view its stops.<br />2nd Filter: Select a bus route to view its amenities around the stops.';
+        };
+        abstract.addTo(map);
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_GoogleMaps_0');
+        map.getPane('pane_GoogleMaps_0').style.zIndex = 400;
+        var layer_GoogleMaps_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleMaps_0',
+            opacity: 0.394,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+        });
+        layer_GoogleMaps_0;
+        map.addLayer(layer_GoogleMaps_0);
+        function pop_Zones_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Name</th>\
+                        <td class="visible-with-data" id="Name">' + (feature.properties['Name'] !== null ? autolinker.link(feature.properties['Name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Region</th>\
+                        <td class="visible-with-data" id="Region">' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">ZONE</th>\
+                        <td class="visible-with-data" id="ZONE">' + (feature.properties['ZONE'] !== null ? autolinker.link(feature.properties['ZONE'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Zones_1_0(feature) {
+            switch(String(feature.properties['Region'])) {
+                case 'Central':
+                    return {
+                pane: 'pane_Zones_1',
+                opacity: 1,
+                color: 'rgba(255,255,255,0.35)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(72,66,220,0.35)',
+                interactive: true,
+            }
+                    break;
+                case 'North':
+                    return {
+                pane: 'pane_Zones_1',
+                opacity: 1,
+                color: 'rgba(255,255,255,0.35)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(101,202,102,0.35)',
+                interactive: true,
+            }
+                    break;
+                case 'South':
+                    return {
+                pane: 'pane_Zones_1',
+                opacity: 1,
+                color: 'rgba(255,255,255,0.35)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(225,48,45,0.35)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Zones_1');
+        map.getPane('pane_Zones_1').style.zIndex = 401;
+        map.getPane('pane_Zones_1').style['mix-blend-mode'] = 'normal';
+        var layer_Zones_1 = new L.geoJson(json_Zones_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Zones_1',
+            layerName: 'layer_Zones_1',
+            pane: 'pane_Zones_1',
+            onEachFeature: pop_Zones_1,
+            style: style_Zones_1_0,
+        });
+        bounds_group.addLayer(layer_Zones_1);
+        map.addLayer(layer_Zones_1);
+        function pop_SourceandDestination_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bus Stop</th>\
+                        <td class="visible-with-data" id="Bus Stop">' + (feature.properties['Bus Stop'] !== null ? autolinker.link(feature.properties['Bus Stop'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Name</th>\
+                        <td class="visible-with-data" id="Name">' + (feature.properties['Name'] !== null ? autolinker.link(feature.properties['Name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_SourceandDestination_2_0() {
+            return {
+                pane: 'pane_SourceandDestination_2',
+                shape: 'square',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(35,35,35,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_SourceandDestination_2');
+        map.getPane('pane_SourceandDestination_2').style.zIndex = 402;
+        map.getPane('pane_SourceandDestination_2').style['mix-blend-mode'] = 'normal';
+        var layer_SourceandDestination_2 = new L.geoJson(json_SourceandDestination_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_SourceandDestination_2',
+            layerName: 'layer_SourceandDestination_2',
+            pane: 'pane_SourceandDestination_2',
+            onEachFeature: pop_SourceandDestination_2,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.shapeMarker(latlng, style_SourceandDestination_2_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_SourceandDestination_2);
+        map.addLayer(layer_SourceandDestination_2);
+        function pop_29C_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_29C_3_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cinema':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,96,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'mall':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(242,80,193,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'beach':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(117,206,112,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'university':
+                    return {
+                pane: 'pane_29C_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(19,55,138,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_29C_3');
+        map.getPane('pane_29C_3').style.zIndex = 403;
+        map.getPane('pane_29C_3').style['mix-blend-mode'] = 'normal';
+        var layer_29C_3 = new L.geoJson(json_29C_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_29C_3',
+            layerName: 'layer_29C_3',
+            pane: 'pane_29C_3',
+            onEachFeature: pop_29C_3,
+            style: style_29C_3_0,
+        });
+        bounds_group.addLayer(layer_29C_3);
+        map.addLayer(layer_29C_3);
+        function pop_17D_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_17D_4_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cinema':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,96,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'mall':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(242,80,193,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'beach':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(117,206,112,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'university':
+                    return {
+                pane: 'pane_17D_4',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(19,55,138,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_17D_4');
+        map.getPane('pane_17D_4').style.zIndex = 404;
+        map.getPane('pane_17D_4').style['mix-blend-mode'] = 'normal';
+        var layer_17D_4 = new L.geoJson(json_17D_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_17D_4',
+            layerName: 'layer_17D_4',
+            pane: 'pane_17D_4',
+            onEachFeature: pop_17D_4,
+            style: style_17D_4_0,
+        });
+        bounds_group.addLayer(layer_17D_4);
+        map.addLayer(layer_17D_4);
+        function pop_102K_5(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_102K_5_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cinema':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,96,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'mall':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(242,80,193,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'beach':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(117,206,112,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'university':
+                    return {
+                pane: 'pane_102K_5',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(19,55,138,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_102K_5');
+        map.getPane('pane_102K_5').style.zIndex = 405;
+        map.getPane('pane_102K_5').style['mix-blend-mode'] = 'normal';
+        var layer_102K_5 = new L.geoJson(json_102K_5, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_102K_5',
+            layerName: 'layer_102K_5',
+            pane: 'pane_102K_5',
+            onEachFeature: pop_102K_5,
+            style: style_102K_5_0,
+        });
+        bounds_group.addLayer(layer_102K_5);
+        map.addLayer(layer_102K_5);
+        function pop_119_6(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_119_6_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cinema':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,96,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'mall':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(242,80,193,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'beach':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(117,206,112,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'university':
+                    return {
+                pane: 'pane_119_6',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(19,55,138,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_119_6');
+        map.getPane('pane_119_6').style.zIndex = 406;
+        map.getPane('pane_119_6').style['mix-blend-mode'] = 'normal';
+        var layer_119_6 = new L.geoJson(json_119_6, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_119_6',
+            layerName: 'layer_119_6',
+            pane: 'pane_119_6',
+            onEachFeature: pop_119_6,
+            style: style_119_6_0,
+        });
+        bounds_group.addLayer(layer_119_6);
+        map.addLayer(layer_119_6);
+        function pop_159A_7(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_159A_7_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cinema':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,96,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'mall':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(242,80,193,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'beach':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(117,206,112,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'university':
+                    return {
+                pane: 'pane_159A_7',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(19,55,138,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_159A_7');
+        map.getPane('pane_159A_7').style.zIndex = 407;
+        map.getPane('pane_159A_7').style['mix-blend-mode'] = 'normal';
+        var layer_159A_7 = new L.geoJson(json_159A_7, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_159A_7',
+            layerName: 'layer_159A_7',
+            pane: 'pane_159A_7',
+            onEachFeature: pop_159A_7,
+            style: style_159A_7_0,
+        });
+        bounds_group.addLayer(layer_159A_7);
+        map.addLayer(layer_159A_7);
+        function pop_2A_8(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_2A_8_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cinema':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,96,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'mall':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(242,80,193,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'beach':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(117,206,112,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'university':
+                    return {
+                pane: 'pane_2A_8',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(19,55,138,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_2A_8');
+        map.getPane('pane_2A_8').style.zIndex = 408;
+        map.getPane('pane_2A_8').style['mix-blend-mode'] = 'normal';
+        var layer_2A_8 = new L.geoJson(json_2A_8, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_2A_8',
+            layerName: 'layer_2A_8',
+            pane: 'pane_2A_8',
+            onEachFeature: pop_2A_8,
+            style: style_2A_8_0,
+        });
+        bounds_group.addLayer(layer_2A_8);
+        map.addLayer(layer_2A_8);
+        function pop_32B_9(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_32B_9_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cinema':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,96,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'mall':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(242,80,193,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'beach':
+                    return {
+                pane: 'pane_32B_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(117,206,112,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_32B_9');
+        map.getPane('pane_32B_9').style.zIndex = 409;
+        map.getPane('pane_32B_9').style['mix-blend-mode'] = 'normal';
+        var layer_32B_9 = new L.geoJson(json_32B_9, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_32B_9',
+            layerName: 'layer_32B_9',
+            pane: 'pane_32B_9',
+            onEachFeature: pop_32B_9,
+            style: style_32B_9_0,
+        });
+        bounds_group.addLayer(layer_32B_9);
+        map.addLayer(layer_32B_9);
+        function pop_26_10(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_26_10_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cinema':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,96,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'mall':
+                    return {
+                pane: 'pane_26_10',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(242,80,193,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_26_10');
+        map.getPane('pane_26_10').style.zIndex = 410;
+        map.getPane('pane_26_10').style['mix-blend-mode'] = 'normal';
+        var layer_26_10 = new L.geoJson(json_26_10, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_26_10',
+            layerName: 'layer_26_10',
+            pane: 'pane_26_10',
+            onEachFeature: pop_26_10,
+            style: style_26_10_0,
+        });
+        bounds_group.addLayer(layer_26_10);
+        map.addLayer(layer_26_10);
+        function pop_48C_11(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_48C_11_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cemetery':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'cinema':
+                    return {
+                pane: 'pane_48C_11',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,96,185,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_48C_11');
+        map.getPane('pane_48C_11').style.zIndex = 411;
+        map.getPane('pane_48C_11').style['mix-blend-mode'] = 'normal';
+        var layer_48C_11 = new L.geoJson(json_48C_11, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_48C_11',
+            layerName: 'layer_48C_11',
+            pane: 'pane_48C_11',
+            onEachFeature: pop_48C_11,
+            style: style_48C_11_0,
+        });
+        bounds_group.addLayer(layer_48C_11);
+        map.addLayer(layer_48C_11);
+        function pop_4_12(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">amenity</th>\
+                        <td class="visible-with-data" id="amenity">' + (feature.properties['amenity'] !== null ? autolinker.link(feature.properties['amenity'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">name</th>\
+                        <td class="visible-with-data" id="name">' + (feature.properties['name'] !== null ? autolinker.link(feature.properties['name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">RouteID</th>\
+                        <td class="visible-with-data" id="RouteID">' + (feature.properties['RouteID'] !== null ? autolinker.link(feature.properties['RouteID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_4_12_0(feature) {
+            switch(String(feature.properties['amenity'])) {
+                case 'clinic':
+                    return {
+                pane: 'pane_4_12',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(86,88,215,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'college':
+                    return {
+                pane: 'pane_4_12',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(184,92,217,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'grave_yard':
+                    return {
+                pane: 'pane_4_12',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,114,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'hospital':
+                    return {
+                pane: 'pane_4_12',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(38,231,131,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'marketplace':
+                    return {
+                pane: 'pane_4_12',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(200,84,144,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'park':
+                    return {
+                pane: 'pane_4_12',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,211,121,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'place_of_worship':
+                    return {
+                pane: 'pane_4_12',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(219,217,81,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'school':
+                    return {
+                pane: 'pane_4_12',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(125,208,235,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_4_12');
+        map.getPane('pane_4_12').style.zIndex = 412;
+        map.getPane('pane_4_12').style['mix-blend-mode'] = 'normal';
+        var layer_4_12 = new L.geoJson(json_4_12, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_4_12',
+            layerName: 'layer_4_12',
+            pane: 'pane_4_12',
+            onEachFeature: pop_4_12,
+            style: style_4_12_0,
+        });
+        bounds_group.addLayer(layer_4_12);
+        map.addLayer(layer_4_12);
+        function pop_Routes_13(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">fid</th>\
+                        <td class="visible-with-data" id="fid">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Name</th>\
+                        <td class="visible-with-data" id="Name">' + (feature.properties['Name'] !== null ? autolinker.link(feature.properties['Name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Route Name</th>\
+                        <td class="visible-with-data" id="Route_ID">' + (feature.properties['Route_ID'] !== null ? autolinker.link(feature.properties['Route_ID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Routes_13_0(feature) {
+            switch(String(feature.properties['Route_ID'])) {
+                case '102K':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(197,219,73,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case '119':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(85,99,207,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case '159A':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(132,68,216,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case '17D':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(230,57,236,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case '26':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(119,187,218,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case '29C':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(141,216,108,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case '2A':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(229,45,32,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case '32B':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(237,160,44,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case '4':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(66,217,184,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case '48C':
+                    return {
+                pane: 'pane_Routes_13',
+                opacity: 1,
+                color: 'rgba(209,54,129,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 3.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Routes_13');
+        map.getPane('pane_Routes_13').style.zIndex = 413;
+        map.getPane('pane_Routes_13').style['mix-blend-mode'] = 'normal';
+        var layer_Routes_13 = new L.geoJson(json_Routes_13, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Routes_13',
+            layerName: 'layer_Routes_13',
+            pane: 'pane_Routes_13',
+            onEachFeature: pop_Routes_13,
+            style: style_Routes_13_0,
+        });
+        bounds_group.addLayer(layer_Routes_13);
+        map.addLayer(layer_Routes_13);
+        function pop_BusStops_14(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">UID</th>\
+                        <td class="visible-with-data" id="UID">' + (feature.properties['UID'] !== null ? autolinker.link(feature.properties['UID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Zone</th>\
+                        <td class="visible-with-data" id="Zone">' + (feature.properties['Zone'] !== null ? autolinker.link(feature.properties['Zone'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bus stop name</th>\
+                        <td class="visible-with-data" id="Bus stop name">' + (feature.properties['Bus stop name'] !== null ? autolinker.link(feature.properties['Bus stop name'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bus route</th>\
+                        <td class="visible-with-data" id="Bus route">' + (feature.properties['Bus route'] !== null ? autolinker.link(feature.properties['Bus route'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bus stop location on the side of the road</th>\
+                        <td class="visible-with-data" id="Bus stop location on the side of the road">' + (feature.properties['Bus stop location on the side of the road'] !== null ? autolinker.link(feature.properties['Bus stop location on the side of the road'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Availability of the shelter</th>\
+                        <td class="visible-with-data" id="Availability of the shelter">' + (feature.properties['Availability of the shelter'] !== null ? autolinker.link(feature.properties['Availability of the shelter'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Traffic signal near the bus stop</th>\
+                        <td class="visible-with-data" id="Traffic signal near the bus stop">' + (feature.properties['Traffic signal near the bus stop'] !== null ? autolinker.link(feature.properties['Traffic signal near the bus stop'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Auto stand</th>\
+                        <td class="visible-with-data" id="Auto stand">' + (feature.properties['Auto stand'] !== null ? autolinker.link(feature.properties['Auto stand'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bus terminal</th>\
+                        <td class="visible-with-data" id="Bus terminal">' + (feature.properties['Bus terminal'] !== null ? autolinker.link(feature.properties['Bus terminal'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Metro station</th>\
+                        <td class="visible-with-data" id="Metro station">' + (feature.properties['Metro station'] !== null ? autolinker.link(feature.properties['Metro station'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">local train station</th>\
+                        <td class="visible-with-data" id="local train station">' + (feature.properties['local train station'] !== null ? autolinker.link(feature.properties['local train station'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Shared auto stop</th>\
+                        <td class="visible-with-data" id="Shared auto stop">' + (feature.properties['Shared auto stop'] !== null ? autolinker.link(feature.properties['Shared auto stop'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Public cycle sharing facility</th>\
+                        <td class="visible-with-data" id="Public cycle sharing facility">' + (feature.properties['Public cycle sharing facility'] !== null ? autolinker.link(feature.properties['Public cycle sharing facility'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Proximity of the bus stop to the road junction</th>\
+                        <td class="visible-with-data" id="Proximity of the bus stop to the road junction">' + (feature.properties['Proximity of the bus stop to the road junction'] !== null ? autolinker.link(feature.properties['Proximity of the bus stop to the road junction'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Dark spot (complete darkness in the street/on the road) in 50m radius of the bus stop</th>\
+                        <td class="visible-with-data" id="Dark spot (complete darkness in the street/on the road) in 50m radius of the bus stop">' + (feature.properties['Dark spot (complete darkness in the street/on the road) in 50m radius of the bus stop'] !== null ? autolinker.link(feature.properties['Dark spot (complete darkness in the street/on the road) in 50m radius of the bus stop'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">CCTV camera present at or around the bus stop</th>\
+                        <td class="visible-with-data" id="CCTV camera present at or around the bus stop">' + (feature.properties['CCTV camera present at or around the bus stop'] !== null ? autolinker.link(feature.properties['CCTV camera present at or around the bus stop'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Presence of traffic police man/police van/chowki at the traffic signal or near</th>\
+                        <td class="visible-with-data" id="Presence of traffic police man/police van/chowki at the traffic signal or near">' + (feature.properties['Presence of traffic police man/police van/chowki at the traffic signal or near'] !== null ? autolinker.link(feature.properties['Presence of traffic police man/police van/chowki at the traffic signal or near'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Presence of security personnel stationed  in the vicinity (nearby shops, offices, residential complexes, banks, ATMs)</th>\
+                        <td class="visible-with-data" id="Presence of security personnel stationed  in the vicinity (nearby shops, offices, residential complexes, banks, ATMs)">' + (feature.properties['Presence of security personnel stationed  in the vicinity (nearby shops, offices, residential complexes, banks, ATMs)'] !== null ? autolinker.link(feature.properties['Presence of security personnel stationed  in the vicinity (nearby shops, offices, residential complexes, banks, ATMs)'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Liquor shop within 50m radius of  the bus stop</th>\
+                        <td class="visible-with-data" id="Liquor shop within 50m radius of  the bus stop">' + (feature.properties['Liquor shop within 50m radius of  the bus stop'] !== null ? autolinker.link(feature.properties['Liquor shop within 50m radius of  the bus stop'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Any shop or spot or isolated area near the bus stop where men gather</th>\
+                        <td class="visible-with-data" id="Any shop or spot or isolated area near the bus stop where men gather">' + (feature.properties['Any shop or spot or isolated area near the bus stop where men gather'] !== null ? autolinker.link(feature.properties['Any shop or spot or isolated area near the bus stop where men gather'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Lux reading - Inside the shelter:</th>\
+                        <td class="visible-with-data" id="Lux reading - Inside the shelter:">' + (feature.properties['Lux reading - Inside the shelter:'] !== null ? autolinker.link(feature.properties['Lux reading - Inside the shelter:'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Bus Stop Location and Surrounding -Weighted Score</th>\
+                        <td class="visible-with-data" id="Bus Stop Location and Surrounding -Weighted Score">' + (feature.properties['Bus Stop Location and Surrounding -Weighted Score'] !== null ? autolinker.link(feature.properties['Bus Stop Location and Surrounding -Weighted Score'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Shelter and Signage</th>\
+                        <td class="visible-with-data" id="Shelter and Signage">' + (feature.properties['Shelter and Signage'] !== null ? autolinker.link(feature.properties['Shelter and Signage'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Pedestrian Infrastructure-Weighted Score</th>\
+                        <td class="visible-with-data" id="Pedestrian Infrastructure-Weighted Score">' + (feature.properties['Pedestrian Infrastructure-Weighted Score'] !== null ? autolinker.link(feature.properties['Pedestrian Infrastructure-Weighted Score'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Safety and Security-Weighted Score</th>\
+                        <td class="visible-with-data" id="Safety and Security-Weighted Score">' + (feature.properties['Safety and Security-Weighted Score'] !== null ? autolinker.link(feature.properties['Safety and Security-Weighted Score'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Total Score</th>\
+                        <td class="visible-with-data" id="Total Score">' + (feature.properties['Total Score'] !== null ? autolinker.link(feature.properties['Total Score'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Pedestrian crossing visible near the bus stop</th>\
+                        <td class="visible-with-data" id="Pedestrian crossing visible near the bus stop">' + (feature.properties['Pedestrian crossing visible near the bus stop'] !== null ? autolinker.link(feature.properties['Pedestrian crossing visible near the bus stop'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_BusStops_14_0() {
+            return {
+                pane: 'pane_BusStops_14',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(255,255,255,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,21,0,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_BusStops_14');
+        map.getPane('pane_BusStops_14').style.zIndex = 414;
+        map.getPane('pane_BusStops_14').style['mix-blend-mode'] = 'normal';
+        var layer_BusStops_14 = new L.geoJson(json_BusStops_14, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_BusStops_14',
+            layerName: 'layer_BusStops_14',
+            pane: 'pane_BusStops_14',
+            onEachFeature: pop_BusStops_14,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_BusStops_14_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_BusStops_14);
+        map.addLayer(layer_BusStops_14);
+        map.on("zoomend", function(e) {
+            if (map.getZoom() <= 12 && map.getZoom() >= 2) {
+                map.addLayer(layer_Zones_1);
+            } else if (map.getZoom() > 12 || map.getZoom() < 2) {
+                map.removeLayer(layer_Zones_1);
+            }
+        });
+            if (map.getZoom() <= 12 && map.getZoom() >= 2) {
+                map.addLayer(layer_Zones_1);
+            } else if (map.getZoom() > 12 || map.getZoom() < 2) {
+                map.removeLayer(layer_Zones_1);
+            }
+        var overlaysTree = [
+            {label: '<img src="legend/BusStops_14.png" /> Bus Stops', layer: layer_BusStops_14},
+            {label: 'Routes<br /><table><tr><td style="text-align: center;"><img src="legend/Routes_13_102K0.png" /></td><td>102K</td></tr><tr><td style="text-align: center;"><img src="legend/Routes_13_1191.png" /></td><td>119</td></tr><tr><td style="text-align: center;"><img src="legend/Routes_13_159A2.png" /></td><td>159A</td></tr><tr><td style="text-align: center;"><img src="legend/Routes_13_17D3.png" /></td><td>17D</td></tr><tr><td style="text-align: center;"><img src="legend/Routes_13_264.png" /></td><td>26</td></tr><tr><td style="text-align: center;"><img src="legend/Routes_13_29C5.png" /></td><td>29C</td></tr><tr><td style="text-align: center;"><img src="legend/Routes_13_2A6.png" /></td><td>2A</td></tr><tr><td style="text-align: center;"><img src="legend/Routes_13_32B7.png" /></td><td>32B</td></tr><tr><td style="text-align: center;"><img src="legend/Routes_13_48.png" /></td><td>4</td></tr><tr><td style="text-align: center;"><img src="legend/Routes_13_48C9.png" /></td><td>48C</td></tr></table>', layer: layer_Routes_13},
+        {label: '<b>Amenities Routewise</b>', selectAllCheckbox: true, children: [
+            {label: '4<br /><table><tr><td style="text-align: center;"><img src="legend/4_12_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/4_12_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/4_12_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/4_12_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/4_12_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/4_12_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/4_12_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/4_12_school7.png" /></td><td>school</td></tr></table>', layer: layer_4_12},
+            {label: '48C<br /><table><tr><td style="text-align: center;"><img src="legend/48C_11_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/48C_11_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/48C_11_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/48C_11_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/48C_11_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/48C_11_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/48C_11_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/48C_11_school7.png" /></td><td>school</td></tr><tr><td style="text-align: center;"><img src="legend/48C_11_cemetery8.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/48C_11_cinema9.png" /></td><td>cinema</td></tr></table>', layer: layer_48C_11},
+            {label: '26<br /><table><tr><td style="text-align: center;"><img src="legend/26_10_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_school7.png" /></td><td>school</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_cemetery8.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_cinema9.png" /></td><td>cinema</td></tr><tr><td style="text-align: center;"><img src="legend/26_10_mall10.png" /></td><td>mall</td></tr></table>', layer: layer_26_10},
+            {label: '32B<br /><table><tr><td style="text-align: center;"><img src="legend/32B_9_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_school7.png" /></td><td>school</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_cemetery8.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_cinema9.png" /></td><td>cinema</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_mall10.png" /></td><td>mall</td></tr><tr><td style="text-align: center;"><img src="legend/32B_9_beach11.png" /></td><td>beach</td></tr></table>', layer: layer_32B_9},
+            {label: '2A<br /><table><tr><td style="text-align: center;"><img src="legend/2A_8_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_school7.png" /></td><td>school</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_cemetery8.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_cinema9.png" /></td><td>cinema</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_mall10.png" /></td><td>mall</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_beach11.png" /></td><td>beach</td></tr><tr><td style="text-align: center;"><img src="legend/2A_8_university12.png" /></td><td>university</td></tr></table>', layer: layer_2A_8},
+            {label: '159A<br /><table><tr><td style="text-align: center;"><img src="legend/159A_7_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_school7.png" /></td><td>school</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_cemetery8.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_cinema9.png" /></td><td>cinema</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_mall10.png" /></td><td>mall</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_beach11.png" /></td><td>beach</td></tr><tr><td style="text-align: center;"><img src="legend/159A_7_university12.png" /></td><td>university</td></tr></table>', layer: layer_159A_7},
+            {label: '119<br /><table><tr><td style="text-align: center;"><img src="legend/119_6_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_school7.png" /></td><td>school</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_cemetery8.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_cinema9.png" /></td><td>cinema</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_mall10.png" /></td><td>mall</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_beach11.png" /></td><td>beach</td></tr><tr><td style="text-align: center;"><img src="legend/119_6_university12.png" /></td><td>university</td></tr></table>', layer: layer_119_6},
+            {label: '102K<br /><table><tr><td style="text-align: center;"><img src="legend/102K_5_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_school7.png" /></td><td>school</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_cemetery8.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_cinema9.png" /></td><td>cinema</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_mall10.png" /></td><td>mall</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_beach11.png" /></td><td>beach</td></tr><tr><td style="text-align: center;"><img src="legend/102K_5_university12.png" /></td><td>university</td></tr></table>', layer: layer_102K_5},
+            {label: '17D<br /><table><tr><td style="text-align: center;"><img src="legend/17D_4_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_school7.png" /></td><td>school</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_cemetery8.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_cinema9.png" /></td><td>cinema</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_mall10.png" /></td><td>mall</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_beach11.png" /></td><td>beach</td></tr><tr><td style="text-align: center;"><img src="legend/17D_4_university12.png" /></td><td>university</td></tr></table>', layer: layer_17D_4},
+            {label: '29C<br /><table><tr><td style="text-align: center;"><img src="legend/29C_3_clinic0.png" /></td><td>clinic</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_college1.png" /></td><td>college</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_graveyard2.png" /></td><td>grave_yard</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_hospital3.png" /></td><td>hospital</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_marketplace4.png" /></td><td>marketplace</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_park5.png" /></td><td>park</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_placeofworship6.png" /></td><td>place_of_worship</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_school7.png" /></td><td>school</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_cemetery8.png" /></td><td>cemetery</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_cinema9.png" /></td><td>cinema</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_mall10.png" /></td><td>mall</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_beach11.png" /></td><td>beach</td></tr><tr><td style="text-align: center;"><img src="legend/29C_3_university12.png" /></td><td>university</td></tr></table>', layer: layer_29C_3},]},
+            {label: '<img src="legend/SourceandDestination_2.png" /> Source and Destination', layer: layer_SourceandDestination_2},
+            {label: 'Zones<br /><table><tr><td style="text-align: center;"><img src="legend/Zones_1_Central0.png" /></td><td>Central</td></tr><tr><td style="text-align: center;"><img src="legend/Zones_1_North1.png" /></td><td>North</td></tr><tr><td style="text-align: center;"><img src="legend/Zones_1_South2.png" /></td><td>South</td></tr></table>', layer: layer_Zones_1},
+            {label: "Google Maps", layer: layer_GoogleMaps_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        var i = 0;
+        layer_Zones_1.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['ZONE'] !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['ZONE']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Zones_1'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var mapDiv = document.getElementById('map');
+        var row = document.createElement('div');
+        row.className="row";
+        row.id="all";
+        row.style.height = "100%";
+        var col1 = document.createElement('div');
+        col1.className="col9";
+        col1.id = "mapWindow";
+        col1.style.height = "99%";
+        col1.style.width = "80%";
+        col1.style.display = "inline-block";
+        var col2 = document.createElement('div');
+        col2.className="col3";
+        col2.id = "menu";
+        col2.style.display = "inline-block";
+        mapDiv.parentNode.insertBefore(row, mapDiv);
+        document.getElementById("all").appendChild(col1);
+        document.getElementById("all").appendChild(col2);
+        col1.appendChild(mapDiv)
+        var Filters = {"Route_ID": "str","RouteID": "str"};
+        function filterFunc() {
+          map.eachLayer(function(lyr){
+          if ("options" in lyr && "dataVar" in lyr["options"]){
+            features = this[lyr["options"]["dataVar"]].features.slice(0);
+            try{
+              for (key in Filters){
+                keyS = key.replace(/[^a-zA-Z0-9_]/g, "")
+                if (Filters[key] == "str" || Filters[key] == "bool"){
+                  var selection = [];
+                  var options = document.getElementById("sel_" + keyS).options
+                  for (var i=0; i < options.length; i++) {
+                    if (options[i].selected) selection.push(options[i].value);
+                  }
+                    try{
+                      if (key in features[0].properties){
+                        for (i = features.length - 1;
+                          i >= 0; --i){
+                          if (selection.indexOf(
+                          features[i].properties[key])<0
+                          && selection.length>0) {
+                          features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                  }
+                }
+                if (Filters[key] == "int"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (parseInt(features[i].properties[key])
+                          < sliderVals[0]
+                          || parseInt(features[i].properties[key])
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "real"){
+                  sliderVals =  document.getElementById(
+                    "div_" + keyS).noUiSlider.get();
+                  try{
+                    if (key in features[0].properties){
+                    for (i = features.length - 1; i >= 0; --i){
+                      if (features[i].properties[key]
+                          < sliderVals[0]
+                          || features[i].properties[key]
+                          > sliderVals[1]){
+                            features.splice(i,1);
+                          }
+                        }
+                      }
+                    } catch(err){
+                    }
+                  }
+                if (Filters[key] == "date"
+                  || Filters[key] == "datetime"
+                  || Filters[key] == "time"){
+                  try{
+                    if (key in features[0].properties){
+                      HTMLkey = key.replace(/[&\/\\#,+()$~%.'":*?<>{} ]/g, '');
+                      startdate = document.getElementById("dat_" +
+                        HTMLkey + "_date1").value.replace(" ", "T");
+                      enddate = document.getElementById("dat_" +
+                        HTMLkey + "_date2").value.replace(" ", "T");
+                      for (i = features.length - 1; i >= 0; --i){
+                        if (features[i].properties[key] < startdate
+                          || features[i].properties[key] > enddate){
+                          features.splice(i,1);
+                        }
+                      }
+                    }
+                  } catch(err){
+                  }
+                }
+              }
+            } catch(err){
+            }
+          this[lyr["options"]["layerName"]].clearLayers();
+          this[lyr["options"]["layerName"]].addData(features);
+        var i = 0;
+        layer_Zones_1.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['ZONE'] !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['ZONE']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Zones_1'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+          }
+          })
+        }
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_Route_ID = document.createElement('div');
+            div_Route_ID.id = "div_Route_ID";
+            div_Route_ID.className= "filterselect";
+            document.getElementById("menu").appendChild(div_Route_ID);
+            sel_Route_ID = document.createElement('select');
+            sel_Route_ID.multiple = true;
+            sel_Route_ID.size = 10;
+            sel_Route_ID.id = "sel_Route_ID";
+            var Route_ID_options_str = "<option value='' unselected></option>";
+            sel_Route_ID.onchange = function(){filterFunc()};
+            Route_ID_options_str  += '<option value="102K">102K</option>';
+            Route_ID_options_str  += '<option value="119">119</option>';
+            Route_ID_options_str  += '<option value="159A">159A</option>';
+            Route_ID_options_str  += '<option value="17D">17D</option>';
+            Route_ID_options_str  += '<option value="26">26</option>';
+            Route_ID_options_str  += '<option value="29C">29C</option>';
+            Route_ID_options_str  += '<option value="2A">2A</option>';
+            Route_ID_options_str  += '<option value="32B">32B</option>';
+            Route_ID_options_str  += '<option value="4">4</option>';
+            Route_ID_options_str  += '<option value="48C">48C</option>';
+            sel_Route_ID.innerHTML = Route_ID_options_str;
+            div_Route_ID.appendChild(sel_Route_ID);
+            var lab_Route_ID = document.createElement('div');
+            lab_Route_ID.innerHTML = 'Route_ID';
+            lab_Route_ID.className = 'filterlabel';
+            div_Route_ID.appendChild(lab_Route_ID);
+            var reset_Route_ID = document.createElement('div');
+            reset_Route_ID.innerHTML = 'clear filter';
+            reset_Route_ID.className = 'filterlabel';
+            reset_Route_ID.onclick = function() {
+                var options = document.getElementById("sel_Route_ID").options;
+                for (var i=0; i < options.length; i++) {
+                    options[i].selected = false;
+                }
+                filterFunc();
+            };
+            div_Route_ID.appendChild(reset_Route_ID);
+            document.getElementById("menu").appendChild(
+                document.createElement("div"));
+            var div_RouteID = document.createElement('div');
+            div_RouteID.id = "div_RouteID";
+            div_RouteID.className= "filterselect";
+            document.getElementById("menu").appendChild(div_RouteID);
+            sel_RouteID = document.createElement('select');
+            sel_RouteID.multiple = true;
+            sel_RouteID.size = 10;
+            sel_RouteID.id = "sel_RouteID";
+            var RouteID_options_str = "<option value='' unselected></option>";
+            sel_RouteID.onchange = function(){filterFunc()};
+            RouteID_options_str  += '<option value="102K">102K</option>';
+            RouteID_options_str  += '<option value="119">119</option>';
+            RouteID_options_str  += '<option value="159A">159A</option>';
+            RouteID_options_str  += '<option value="17D">17D</option>';
+            RouteID_options_str  += '<option value="26">26</option>';
+            RouteID_options_str  += '<option value="29C">29C</option>';
+            RouteID_options_str  += '<option value="2A">2A</option>';
+            RouteID_options_str  += '<option value="32B">32B</option>';
+            RouteID_options_str  += '<option value="4">4</option>';
+            RouteID_options_str  += '<option value="48C">48C</option>';
+            sel_RouteID.innerHTML = RouteID_options_str;
+            div_RouteID.appendChild(sel_RouteID);
+            var lab_RouteID = document.createElement('div');
+            lab_RouteID.innerHTML = 'RouteID';
+            lab_RouteID.className = 'filterlabel';
+            div_RouteID.appendChild(lab_RouteID);
+            var reset_RouteID = document.createElement('div');
+            reset_RouteID.innerHTML = 'clear filter';
+            reset_RouteID.className = 'filterlabel';
+            reset_RouteID.onclick = function() {
+                var options = document.getElementById("sel_RouteID").options;
+                for (var i=0; i < options.length; i++) {
+                    options[i].selected = false;
+                }
+                filterFunc();
+            };
+            div_RouteID.appendChild(reset_RouteID);
+        resetLabels([layer_Zones_1,layer_SourceandDestination_2]);
+        map.on("zoomend", function(){
+            resetLabels([layer_Zones_1,layer_SourceandDestination_2]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_Zones_1,layer_SourceandDestination_2]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_Zones_1,layer_SourceandDestination_2]);
+        });
+        </script>
+    </body>
+</html>
